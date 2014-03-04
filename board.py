@@ -87,19 +87,26 @@ class Board(object):
         max_card = max(map(max, self.board))
         candidates.extend([3*2**i\
                            for i in range(int(math.log(max_card/3, 2))+1)])
-        next_card = random.choice(candidates)
-        return next_card
+        self.next_card = random.choice(candidates)
+        return self.next_card
 
-    def preview_move(self, direction):
+    def preview_move(self, direction, return_extra=False):
         """
         Given a direction, returns the resulting board
         after swiping in that direction.
+
+        return_extra: if True, instead of returning just the board, 
+            also return locations where the new card can be placed
+            and the values of merged cards
         """
         if not self.can_move():
             return False
 
         # Keep track of where we can put the new card
         locations = []
+
+        # Keep track of the resulting value of merged cards
+        merges = []
 
         # Don't modify our board
         board = copy.deepcopy(self.board)
@@ -124,6 +131,7 @@ class Board(object):
                         # If the values could be merged,
                         # set current position to their sum
                         board[row][col] = val
+                        merges.append(val)
 
                         # Shift remaining values up one
                         for i in range(row+1, 3):
@@ -149,6 +157,7 @@ class Board(object):
                                           board[row-1][col])
                     if val:
                         board[row][col] = val
+                        merges.append(val)
 
                         for i in range(row-1, 0, -1):
                             board[i][col] = board[i-1][col]
@@ -172,6 +181,7 @@ class Board(object):
                                           board[row][col-1])
                     if val:
                         board[row][col] = val
+                        merges.append(val)
 
                         for i in range(col-1, 0, -1):
                             board[row][i] = board[row][i-1]
@@ -195,6 +205,7 @@ class Board(object):
                                           board[row][col+1])
                     if val:
                         board[row][col] = val
+                        merges.append(val)
 
                         for i in range(col+1, 3):
                             board[row][i] = board[row][i+1]
@@ -203,12 +214,17 @@ class Board(object):
                         locations.append((row, 3))
                         break
 
-        # TODO handle locations, next_card
-
+        if return_extra:
+            return (board, locations, merges)
         return board
 
     def move(self, direction):
-        board = self.preview_move(direction)
+        board, locations, merges = self.preview_move(direction,
+                                                     return_extra=True)
         if board:
             self.board = board
+            nloc = random.choice(locations)
+            self.board[nloc[0]][nloc[1]] = self.next_card
+            self.set_next_card()
+
         return board
