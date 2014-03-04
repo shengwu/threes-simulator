@@ -10,8 +10,11 @@ class Board(object):
     DOWN = 2
     LEFT = 3
 
-    def __init__(self):
-        self.board = [[None for _ in xrange(4)] for _ in xrange(4)]
+    def __init__(self, board=None):
+        if board:
+            self.board = board
+        else:
+            self.board = [[None for _ in xrange(4)] for _ in xrange(4)]
         self.next_card = random.choice([1, 2, 3])
 
     def display(self):
